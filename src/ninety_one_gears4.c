@@ -401,11 +401,9 @@ void window_load(Window *window){
 
         isDown[i] = false;
     }
-  APP_LOG(APP_LOG_LEVEL_DEBUG, "<- Window Load");
 }
 
 void window_unload(Window *window){
-  APP_LOG(APP_LOG_LEVEL_DEBUG, "-> Window unload");
 	//Destroy resources
 	//Like a good developer would
   //bmp_deinit_container(&background_image);
@@ -432,11 +430,9 @@ void window_unload(Window *window){
     gbitmap_destroy(time_digits_images[i]);
     bitmap_layer_destroy(time_digits_imageslayer[i]);
   }
-  APP_LOG(APP_LOG_LEVEL_DEBUG, "<- Window unload");
 }
 
 void handle_init(void) {
-  APP_LOG(APP_LOG_LEVEL_DEBUG, "-> Handle init");
   window = window_create();
 	
   window_set_window_handlers(window, (WindowHandlers) {
@@ -452,16 +448,13 @@ void handle_init(void) {
 
   //timer_handle = app_timer_send_event(ctx, 100 /* milliseconds */, COOKIE_MY_TIMER);
   timer_handle = app_timer_register(100 /* milliseconds */, handle_timer, (void *)COOKIE_MY_TIMER);
-  APP_LOG(APP_LOG_LEVEL_DEBUG, "<- Handle init");
 } //end handle_init
 
 
 void handle_deinit(void) {
-  APP_LOG(APP_LOG_LEVEL_DEBUG, "-> Handle deinit");
   tick_timer_service_unsubscribe();
   animation_unschedule_all();
   window_destroy(window);
-  APP_LOG(APP_LOG_LEVEL_DEBUG, "<- Handle deinit");
 }
 
 
