@@ -1,5 +1,5 @@
-pebble_steampebble_mark1
-========================
+pebble_steampebble_markII
+=========================
 
 A steampunk-themed watchface for the pebble.
 
