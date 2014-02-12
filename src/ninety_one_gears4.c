@@ -4,6 +4,7 @@
 //concentrate on the design elements needed for my cunning plans.
 
 Window *window;
+static Layer *window_layer;
 Layer *timeFrame; //this is necessary to frame the digits so that they can be animated with the property animation tool yet be clipped when they move down
                     // outside of the watch frame.
 
@@ -108,10 +109,8 @@ static BitmapLayer *gear_imagelayer;
 //
 
 void on_animation_stopped(Animation *anim, bool finished, void *context) {
-  APP_LOG(APP_LOG_LEVEL_DEBUG, "-> Animation stopped");
   //Free the memory used by the Animation
   property_animation_destroy((PropertyAnimation*) anim);
-  APP_LOG(APP_LOG_LEVEL_DEBUG, "<- Animation stopped");
 }
 
 void set_container_image(BitmapLayer *bmp_container, const int resource_id, GPoint origin, Layer *targetLayer) {
@@ -162,8 +161,7 @@ unsigned short get_display_hour(unsigned short hour) {
 //
 
 void update_display(struct tm *current_time) {
-  APP_LOG(APP_LOG_LEVEL_DEBUG, "--> Update display");
-  Layer *window_layer = window_get_root_layer(window);
+  //window_layer = window_get_root_layer(window);
   // TODO: Only update changed values?
 
   set_container_image(day_name_imagelayer, DAY_NAME_IMAGE_RESOURCE_IDS[current_time->tm_wday], GPoint(65, 64), window_layer);
@@ -185,10 +183,9 @@ void update_display(struct tm *current_time) {
     if (display_hour/10 == 0) {
       layer_remove_from_parent((Layer *)time_digits_imageslayer[0]);
       //bmp_deinit_container(time_digits_imageslayer[0]);
-	  bitmap_layer_destroy(time_digits_imageslayer[0]);
+	  //bitmap_layer_destroy(time_digits_imageslayer[0]);
     }
   }
-  APP_LOG(APP_LOG_LEVEL_DEBUG, "<-- Update display");
 }
 
 //
@@ -199,7 +196,7 @@ void update_display(struct tm *current_time) {
 #define COOKIE_MY_TIMER 1
 
 void handle_timer(void *data) {
-	Layer *window_layer = window_get_root_layer(window);
+	//Layer *window_layer = window_get_root_layer(window);
     uint32_t cookie = (uint32_t) data;
     if (cookie == COOKIE_MY_TIMER) {
         //update the gear to the next frame of animation.
@@ -220,7 +217,7 @@ void handle_timer(void *data) {
 // 
 
 void handle_second_tick(struct tm *t, TimeUnits tu) {
-    Layer *window_layer = window_get_root_layer(window);
+    //Layer *window_layer = window_get_root_layer(window);
     unsigned short display_second = t->tm_sec;
     
     //  bmp_init_container(RESOURCE_ID_IMAGE_METER_BAR, &meter_bar_image);
@@ -327,11 +324,10 @@ void handle_second_tick(struct tm *t, TimeUnits tu) {
 } //end handle_second_tick
 
 void window_load(Window *window){
-  APP_LOG(APP_LOG_LEVEL_DEBUG, "-> Window Load");
-  Layer *window_layer = window_get_root_layer(window);
+  window_layer = window_get_root_layer(window);
 	
   //bmp_init_container(RESOURCE_ID_IMAGE_BACKGROUND, &background_image);
-  GBitmap *background_image = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_BACKGROUND);
+  background_image = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_BACKGROUND);
   BitmapLayer *background_image_layer = bitmap_layer_create(GRect(0, 0, 144, 168));
   bitmap_layer_set_bitmap(background_image_layer, background_image);
   layer_add_child(window_layer, (Layer *) background_image_layer);
@@ -406,7 +402,10 @@ void window_load(Window *window){
 void window_unload(Window *window){
 	//Destroy resources
 	//Like a good developer would
-  //bmp_deinit_container(&background_image);
+  
+  layer_destroy(timeFrame);
+	
+  //bmp_deinit_container(&background_image);	
   gbitmap_destroy(background_image);
   bitmap_layer_destroy(background_imagelayer);
 	
