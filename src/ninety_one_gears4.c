@@ -173,19 +173,18 @@ void update_display(struct tm *current_time) {
   unsigned short display_hour = get_display_hour(current_time->tm_hour);
 
   // TODO: Remove leading zero?
-  set_container_image(time_digits_imageslayer[0], BIG_DIGIT_IMAGE_RESOURCE_IDS[display_hour/10], isDown[0] ? GPoint(2, 50) : GPoint(2,0), timeFrame);
+  if (display_hour/10)
+  {
+    set_container_image(time_digits_imageslayer[0], BIG_DIGIT_IMAGE_RESOURCE_IDS[display_hour/10], isDown[0] ? GPoint(2, 50) : GPoint(2,0), timeFrame);
+  }
+  else
+  {
+	set_container_image(time_digits_imageslayer[0], BIG_DIGIT_IMAGE_RESOURCE_IDS[display_hour/10], GPoint(2,50), timeFrame);
+  }
   set_container_image(time_digits_imageslayer[1], BIG_DIGIT_IMAGE_RESOURCE_IDS[display_hour%10], isDown[1] ? GPoint(30, 50) : GPoint(30,0), timeFrame);
 
   set_container_image(time_digits_imageslayer[2], BIG_DIGIT_IMAGE_RESOURCE_IDS[current_time->tm_min/10], isDown[2] ? GPoint(67, 50) : GPoint(67,0), timeFrame);
   set_container_image(time_digits_imageslayer[3], BIG_DIGIT_IMAGE_RESOURCE_IDS[current_time->tm_min%10], isDown[3] ? GPoint(95, 50) : GPoint(95,0), timeFrame); 
-	
-  if (!clock_is_24h_style()) {
-    if (display_hour/10 == 0) {
-      layer_remove_from_parent((Layer *)time_digits_imageslayer[0]);
-      //bmp_deinit_container(time_digits_imageslayer[0]);
-	  //bitmap_layer_destroy(time_digits_imageslayer[0]);
-    }
-  }
 }
 
 //
@@ -296,9 +295,14 @@ void handle_second_tick(struct tm *t, TimeUnits tu) {
 	if(display_second==0) {
       update_display(t); //we call this rather than having the OS do so, so we can control exactly when it's going to happen.
       animation_unschedule_all(); //just in case. This isn't likely to occur, but could happen if the app is launched near minute transition.
-        
+		
+	  unsigned short display_hour = get_display_hour(t->tm_hour);
+      int enddigit = 1;
+      if (display_hour/10) {
+        enddigit = 0;
+      }			
       //animate the digits back to starting positions!
-      for(int i=3;i>=0;i--)
+      for(int i=3;i>=enddigit;i--)
       {
         if(isDown[i]) {
           //if we put it down, so set up and start the animation to get it back up.
@@ -354,6 +358,7 @@ void window_load(Window *window){
   for (int i = 0; i < TOTAL_TIME_DIGITS; i++) {
     time_digits_images[i] = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_NUM_0); 
   }
+  
   time_digits_imageslayer[0] = bitmap_layer_create(GRect(2, 50, 27, 50));
   time_digits_imageslayer[1] = bitmap_layer_create(GRect(30, 50, 27, 50));
   time_digits_imageslayer[2] = bitmap_layer_create(GRect(67, 50, 27, 50));
@@ -376,11 +381,18 @@ void window_load(Window *window){
 	
   update_display(tick_time);
 	
+  unsigned short display_hour = get_display_hour(tick_time->tm_hour);
+  int enddigit = 1;
+  if (display_hour/10) {
+    enddigit = 0;
+    isDown[0] = true;
+  }	
 	//start by animating 3 or 4 digits up from the bottom of the display, slower than we do later on for dramatic effect.
-    for(int i=3;i>=0;i--)
+    for(int i=3;i>=enddigit;i--)
     {
         from_rect[i] = layer_get_frame((Layer *)time_digits_imageslayer[i]);
-        from_rect[i].origin.y-=50;
+	    from_rect[i].origin.y-=50;
+		
         //property_animation_init_layer_frame(&digit_animations[i], &time_digits_images[i].layer.layer, NULL, &from_rect[i]);
 		//digit_animations[i] = animation_create();
 		digit_animations[i] = property_animation_create_layer_frame((Layer *)time_digits_imageslayer[i], NULL, &from_rect[i]);
@@ -394,7 +406,6 @@ void window_load(Window *window){
         animation_set_handlers((Animation*) digit_animations[i], handlers, NULL);
 		
         animation_schedule((Animation *) digit_animations[i]);
-
         isDown[i] = false;
     }
 }
